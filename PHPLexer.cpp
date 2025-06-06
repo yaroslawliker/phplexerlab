@@ -367,6 +367,8 @@ public:
             return true;
         }
 
-        return false; // No boolean value found        
+        // No boolean value found 
+        curPos = startPos; // Resetting the position to start 
+        return false;       
     }
 };
