@@ -33,11 +33,16 @@ private:
 
 public:
 
-    void setSourceCode(const std::string& code) {
+    void setSourceCode(std::string code) {
+
+        // Added \0 to the end if needed
+        if (code.at(code.length()-1) != '\0') {
+            code += '\0'; 
+        }
+        
         sourceCode = code;
         curPos = 0;
         sourceCodelength = code.length();
-
     };
 
     std::list<Token> getTokens() {
@@ -68,7 +73,7 @@ public:
         
         std::string identifier;
 
-        while (curPos < sourceCodelength) {
+        while (curPos < sourceCodelength && state != ACCEPT) {
 
             char ch = sourceCode[curPos];
 
@@ -100,16 +105,16 @@ public:
                 } else {
                     state = ACCEPT;
                 }
-
-            case ACCEPT:
-                identifier += ch;
-
-                curPos--; // Step back to reprocess the current character
-                return Token(TokenType::IDENTIFIER, identifier);
                 break;
-            }
 
-            curPos++;
-        }        
+            
+            }  
+        curPos++;    
+         
+        }
+
+        curPos--; // Step back to reprocess the current character
+        Token token(TokenType::IDENTIFIER, identifier);
+        return token; 
     }
 };
