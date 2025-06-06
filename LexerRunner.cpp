@@ -33,7 +33,7 @@ int main() {
 
     PHPLexer lexer;
 
-    lexer.setSourceCode("$var1");
+    lexer.setSourceCode("$var1 if else $_my_var2");
     std::list<Token> tokens = lexer.getTokens();
 
     coutTokens(tokens);

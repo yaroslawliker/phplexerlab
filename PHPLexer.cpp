@@ -30,6 +30,12 @@ private:
     size_t curPos; // Currect position
     size_t sourceCodelength;
 
+    std::string keywords[11] = {
+         "if", "else",
+         "do", "while", "for", "foreach", "break", "continue",
+         "function", "return", "echo"
+    };
+
 
 public:
 
@@ -54,6 +60,8 @@ public:
 
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
+            } else if (isalpha(ch) || ch == '_') {
+                tokens.push_back(extractKeyword());
             }
 
             curPos++;
@@ -61,6 +69,7 @@ public:
         
         return tokens;
     }
+
 
     // Extracts and indentifier from the current position.
     // Uses Finite Automata to recognize identifiers.
@@ -118,5 +127,50 @@ public:
         curPos--; // Step back to reprocess the current character
         Token token(TokenType::IDENTIFIER, identifier);
         return token; 
+    }
+
+    Token extractKeyword() {
+        enum STATE {
+            START,
+            KEYWORD,
+            END
+        } state = START;
+
+        std::string potentialKeyword;
+
+        while (curPos < sourceCodelength && state != END) {
+            char ch = sourceCode[curPos];
+
+            switch (state)
+            {
+            case START:
+                if (isalpha(ch) || ch == '_') {
+                    potentialKeyword += ch;
+                    state = KEYWORD;
+                } else {
+                    throw std::runtime_error("Expected a letter or underscore at the start of keyword");
+                }
+                break;
+
+            case KEYWORD:
+                if (isalnum(ch) || ch == '_') {
+                    potentialKeyword += ch;
+                } else {
+                    state = END;
+                }
+                break;
+            }
+            curPos++;
+        }
+
+        curPos--; // Step back to reprocess the current character
+
+        for(std::string keyword: keywords) {
+            if (potentialKeyword == keyword) {
+                return Token(TokenType::KEYWORD, potentialKeyword);
+            }
+        }
+
+        throw std::runtime_error("Unrecognized keyword: " + potentialKeyword);
     }
 };
