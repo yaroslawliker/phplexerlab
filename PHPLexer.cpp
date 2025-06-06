@@ -64,6 +64,8 @@ public:
                 tokens.push_back(extractKeyword());
             } else if (ch == '"' || ch == '\'') {
                 tokens.push_back(extractString());
+            } else if (isdigit(ch)) {
+                tokens.push_back(extractIntegerOrFloat());
             }
 
             curPos++;
@@ -179,7 +181,8 @@ public:
     }
 
     // Extracts a string from the current position
-    // Uses (alomst) Finite Automata to recognize strings: has quotChar memory slot
+    // Uses (alomst) Finite Automata to recognize strings:
+    // has quotChar memory slot to keep it simple
     Token extractString() {
         enum STATE {
             START,
@@ -227,5 +230,78 @@ public:
         }
 
         return Token(TokenType::STRING, strValue);
+    }
+
+    // Extracts a number (integer or float) from the current position
+    // Uses Finite Automata
+    Token extractIntegerOrFloat() {
+        enum STATE {
+            START,
+            LEADING_ZERO, // Has leadng zero e.g. 01 or 0.1
+            INTEGER_PART, // Haven't meet a point yet
+            FLOAT, // Met a point
+            ACCEPT_INTEGER,
+            ACCEPT_FLOAT
+        } state = START;
+
+        std::string value;
+
+        while (curPos < sourceCodelength && state != ACCEPT_INTEGER && state != ACCEPT_FLOAT) {
+            char ch = sourceCode[curPos];
+
+            switch (state)
+            {
+            case START:
+                if (ch == '0')  {
+                    state = LEADING_ZERO;
+                } else if (isdigit(ch)) {
+                    state = INTEGER_PART;
+                } else {
+                    // Never reached if the method is called properly
+                    throw std::runtime_error("Expected a digit at the start of number");
+                }
+                value += ch;
+                break;
+            
+            case LEADING_ZERO:
+                if (ch == '.') {
+                    state = FLOAT;
+                    value += ch;
+                } else {
+                    throw std::runtime_error("Leading zero must be followed by a decimal point");
+                }
+                break;
+            
+            case INTEGER_PART:
+                if (ch == '.') {
+                    state = FLOAT;
+                    value += ch;
+                } else if (!isdigit(ch)) {
+                    state = ACCEPT_INTEGER;
+                } else {
+                    value += ch;
+                }
+
+                break;
+            
+            case FLOAT:
+                if (isdigit(ch)) {
+                    value += ch;
+                } else {
+                    state = ACCEPT_FLOAT;
+                }
+                break;
+            }
+        
+            curPos++;
+        }
+
+        curPos--; // Step back to reprocess the current character
+
+        if (state == ACCEPT_INTEGER) {
+            return Token(TokenType::INTEGER, value);
+        } else if (state == ACCEPT_FLOAT) {
+            return Token(TokenType::FLOAT, value);
+        }
     }
 };

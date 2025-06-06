@@ -33,7 +33,7 @@ int main() {
 
     PHPLexer lexer;
 
-    lexer.setSourceCode("$var1 if \"hello\" do \"how are you\" else 'bye' $_my_var2");
+    lexer.setSourceCode("$var1 if \"hello\" do \"how are you\" else 'bye' $_my_var2 123 123. 45.67 0.89");
     std::list<Token> tokens = lexer.getTokens();
 
     coutTokens(tokens);
