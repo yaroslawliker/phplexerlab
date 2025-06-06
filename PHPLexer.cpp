@@ -60,13 +60,18 @@ public:
 
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
-            } else if (isalpha(ch) || ch == '_') {
+            } 
+            else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
+            else if (isalpha(ch) || ch == '_') {
                 tokens.push_back(extractKeyword());
-            } else if (ch == '"' || ch == '\'') {
+            } 
+            else if (ch == '"' || ch == '\'') {
                 tokens.push_back(extractString());
-            } else if (isdigit(ch)) {
+            } 
+            else if (isdigit(ch)) {
                 tokens.push_back(extractIntegerOrFloat());
-            }
+            } 
+        
 
             curPos++;
         }
@@ -303,5 +308,36 @@ public:
         } else if (state == ACCEPT_FLOAT) {
             return Token(TokenType::FLOAT, value);
         }
+    }
+
+    // Working with booleans:
+    // 1. Tries to extract a boolean value
+    // 2. If a boolean value is found, adds approriate token to the list
+    // 3. Returns true if a boolean value was found, false otherwise
+    bool isAbleToExtractBoolean(std::list<Token>& tokens) {
+
+        std::string value;
+
+        char ch;
+        // Exctraction a word
+        while (curPos < sourceCodelength) {
+            ch = sourceCode[curPos];
+
+            if (!isalpha(ch)) {
+                break; // Stop if we hit a non-alphabetic character
+            }
+
+            value += ch; 
+            curPos++;
+        }
+
+        if (value == "true" || value == "false") {
+            curPos--; // Step back to reprocess the current character
+            Token token(TokenType::BOOLEAN, value);
+            tokens.push_back(token);
+            return true;
+        }
+
+        return false; // No boolean value found        
     }
 };
