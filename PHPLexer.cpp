@@ -29,6 +29,7 @@ private:
     std::string sourceCode;
     size_t curPos; // Currect position
     size_t sourceCodelength;
+    bool trace = false; // If true, prints debug information
 
     std::string keywords[11] = {
          "if", "else",
@@ -50,6 +51,10 @@ public:
         curPos = 0;
         sourceCodelength = code.length();
     };
+
+    void setTrace(bool t) {
+        trace = t;
+    }
 
     std::list<Token> getTokens() {
         std::list<Token> tokens;
@@ -83,6 +88,10 @@ public:
     // Extracts an indentifier from the current position.
     // Uses Finite Automata to recognize identifiers.
     Token extractIdenetifier() {
+
+        if (trace) {
+            std::cout << "Extracting identifier at position: " << curPos << std::endl;
+        }
 
         enum STATE {
             START,
@@ -141,6 +150,11 @@ public:
     // Extracts a keyword from the currect position
     // Uses almost Finite Automata to recognize keywords
     Token extractKeyword() {
+
+        if (trace) {
+            std::cout << "Extracting keyword at position: " << curPos << std::endl;
+        }
+
         enum STATE {
             START,
             KEYWORD,
@@ -189,6 +203,11 @@ public:
     // Uses (alomst) Finite Automata to recognize strings:
     // has quotChar memory slot to keep it simple
     Token extractString() {
+
+        if (trace) {
+            std::cout << "Extracting string at position: " << curPos << std::endl;
+        }
+
         enum STATE {
             START,
             STRING_CONTENT,
@@ -240,6 +259,11 @@ public:
     // Extracts a number (integer or float) from the current position
     // Uses Finite Automata
     Token extractIntegerOrFloat() {
+
+        if (trace) {
+            std::cout << "Extracting number at position: " << curPos << std::endl;
+        }
+
         enum STATE {
             START,
             LEADING_ZERO, // Has leadng zero e.g. 01 or 0.1
@@ -316,6 +340,11 @@ public:
     // 3. Returns true if a boolean value was found, false otherwise
     bool isAbleToExtractBoolean(std::list<Token>& tokens) {
 
+        if (trace) {
+            std::cout << "Checking for boolean at position: " << curPos << std::endl;
+        }
+
+        size_t startPos = curPos;
         std::string value;
 
         char ch;
