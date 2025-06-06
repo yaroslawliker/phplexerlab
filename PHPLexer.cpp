@@ -48,14 +48,12 @@ public:
             char ch = sourceCode[curPos];
 
             if (ch == '$') {
-
+                tokens.push_back(extractIdenetifier());
             }
-
 
             curPos++;
         }
         
-
         return tokens;
     }
 
@@ -104,7 +102,8 @@ public:
                 }
 
             case ACCEPT:
-                
+                identifier += ch;
+
                 curPos--; // Step back to reprocess the current character
                 return Token(TokenType::IDENTIFIER, identifier);
                 break;
@@ -114,14 +113,3 @@ public:
         }        
     }
 };
-
-
-
-
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-
-    // This is a placeholder for the lexer implementation
-    // You can add your lexer logic here
-    return 0;
-}
