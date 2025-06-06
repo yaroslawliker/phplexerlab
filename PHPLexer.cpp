@@ -62,6 +62,8 @@ public:
                 tokens.push_back(extractIdenetifier());
             } else if (isalpha(ch) || ch == '_') {
                 tokens.push_back(extractKeyword());
+            } else if (ch == '"' || ch == '\'') {
+                tokens.push_back(extractString());
             }
 
             curPos++;
@@ -71,7 +73,7 @@ public:
     }
 
 
-    // Extracts and indentifier from the current position.
+    // Extracts an indentifier from the current position.
     // Uses Finite Automata to recognize identifiers.
     Token extractIdenetifier() {
 
@@ -129,6 +131,8 @@ public:
         return token; 
     }
 
+    // Extracts a keyword from the currect position
+    // Uses almost Finite Automata to recognize keywords
     Token extractKeyword() {
         enum STATE {
             START,
@@ -172,5 +176,56 @@ public:
         }
 
         throw std::runtime_error("Unrecognized keyword: " + potentialKeyword);
+    }
+
+    // Extracts a string from the current position
+    // Uses (alomst) Finite Automata to recognize strings: has quotChar memory slot
+    Token extractString() {
+        enum STATE {
+            START,
+            STRING_CONTENT,
+            END
+        } state = START;
+
+        // Value of the string including quotes
+        std::string strValue;
+
+        char quoteChar = '\0'; 
+
+        while (curPos < sourceCodelength && state != END) {
+            char ch = sourceCode[curPos];
+
+            switch (state)
+            {
+            case START:
+                if (ch == '"') {
+                    quoteChar = '"';
+                } else if (ch == '\'') {
+                    quoteChar = '\'';
+                } else {
+                    // Handle error or unexpected character
+                    throw std::runtime_error("Expected a quote character to start string");
+                }
+
+                strValue += ch;
+                state = STRING_CONTENT;
+                break;
+            
+            case STRING_CONTENT:
+                if (ch == '\0') {
+                    throw std::runtime_error("Unterminated string literal");
+                }
+
+                if (ch == quoteChar) { 
+                    state = END;
+                }
+                // Adding ch no matter it's part of the content or an ending quote
+                strValue += ch;
+            }
+
+            curPos++;
+        }
+
+        return Token(TokenType::STRING, strValue);
     }
 };
