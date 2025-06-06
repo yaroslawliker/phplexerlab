@@ -84,6 +84,40 @@ public:
         return tokens;
     }
 
+    void raiseError(std::string message, int pos) {
+
+        int wordStartPos = pos;
+        int wordEndPos = pos;
+
+        if (pos > 0) {
+            wordStartPos--;
+        }
+        if (pos < sourceCodelength-1) {
+            wordEndPos++;
+        }
+
+        while (wordStartPos > 0 && sourceCode[wordStartPos] != ' ') {
+            wordStartPos--;
+        }
+
+        while (wordEndPos < sourceCodelength && sourceCode[wordEndPos] != ' ') {
+            wordEndPos++;
+        }
+
+        std::string positionStr = " at position: " + std::to_string(pos);
+
+
+        std::string errorTrace;
+        errorTrace += sourceCode.substr(wordStartPos, pos - wordStartPos);
+        errorTrace += "<---";
+        errorTrace += sourceCode.substr(pos, wordEndPos - pos);
+
+        message += positionStr;
+        message += ": " + errorTrace;
+
+        throw std::runtime_error(message);
+    }
+
 
     // Extracts an indentifier from the current position.
     // Uses Finite Automata to recognize identifiers.
@@ -114,7 +148,7 @@ public:
                     state = IDENTIFIER_FIRST;
                 } else {
                     // Handle error or unexpected character
-                    throw std::runtime_error("Expected '$' at the start of identifier");             
+                    raiseError("Expected '$' at the start of identifier", curPos);
                 }
                 break;
             
@@ -124,7 +158,7 @@ public:
                     state = IDENTIFIER;
                 } else {
                     // Handle error or unexpected character
-                    throw std::runtime_error(std::string("Invalid first character in identifier: ") + ch);
+                    raiseError("Invalid first character in identifier: ", curPos);
                 }
                 break;
 
@@ -173,7 +207,7 @@ public:
                     potentialKeyword += ch;
                     state = KEYWORD;
                 } else {
-                    throw std::runtime_error("Expected a letter or underscore at the start of keyword");
+                    raiseError("Expected a letter or underscore at the start of keyword", curPos);
                 }
                 break;
 
@@ -195,8 +229,8 @@ public:
                 return Token(TokenType::KEYWORD, potentialKeyword);
             }
         }
-
-        throw std::runtime_error("Unrecognized keyword: " + potentialKeyword);
+        
+        raiseError("Unrecognized keyword: ", curPos);
     }
 
     // Extracts a string from the current position
@@ -231,7 +265,7 @@ public:
                     quoteChar = '\'';
                 } else {
                     // Handle error or unexpected character
-                    throw std::runtime_error("Expected a quote character to start string");
+                    raiseError("Expected a quote character to start string", curPos);
                 }
 
                 strValue += ch;
@@ -240,7 +274,7 @@ public:
             
             case STRING_CONTENT:
                 if (ch == '\0') {
-                    throw std::runtime_error("Unterminated string literal");
+                    raiseError("Unterminated string literal", curPos);
                 }
 
                 if (ch == quoteChar) { 
@@ -287,7 +321,7 @@ public:
                     state = INTEGER_PART;
                 } else {
                     // Never reached if the method is called properly
-                    throw std::runtime_error("Expected a digit at the start of number");
+                    raiseError("Expected a digit at the start of number", curPos);
                 }
                 value += ch;
                 break;
@@ -297,7 +331,7 @@ public:
                     state = FLOAT;
                     value += ch;
                 } else {
-                    throw std::runtime_error("Leading zero must be followed by a decimal point");
+                    raiseError("Leading zero must be followed by a decimal point", curPos);
                 }
                 break;
             
