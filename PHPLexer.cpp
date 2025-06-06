@@ -62,6 +62,8 @@ public:
         return tokens;
     }
 
+    // Extracts and indentifier from the current position.
+    // Uses Finite Automata to recognize identifiers.
     Token extractIdenetifier() {
 
         enum STATE {
