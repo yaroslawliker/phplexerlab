@@ -14,7 +14,8 @@ enum class TokenType {
     STRING,
     BOOLEAN,
     // Named so because NULL is a name in C++
-    NUL
+    NUL,
+    END_OF_FILE
 };
 
 
@@ -63,12 +64,7 @@ private:
 public:
 
     void setSourceCode(std::string code) {
-
-        // Added \0 to the end if needed
-        if (code.at(code.length()-1) != '\0') {
-            code += '\0'; 
-        }
-        
+                
         sourceCode = code;
         curPos = 0;
         line = 1;
@@ -114,6 +110,8 @@ public:
 
             curPos++;
         }
+
+        tokens.push_back(Token(TokenType::END_OF_FILE, ""));
         
         return tokens;
     }
@@ -320,13 +318,12 @@ public:
                 break;
             
             case STRING_CONTENT:
-                if (ch == '\0') {
-                    raiseError("Unterminated string literal", curPos);
-                }
-
                 if (ch == quoteChar) { 
                     state = END;
+                } else if (curPos == sourceCodelength-1) {
+                    raiseError("Unterminated string literal", curPos);
                 }
+                
                 // Adding ch no matter it's part of the content or an ending quote
                 strValue += ch;
             }
@@ -815,7 +812,7 @@ public:
                     break;
 
                 case INLINE_COMMENT:
-                    if (ch == '\n' || ch == '\0') {
+                    if (ch == '\n' || curPos == sourceCodelength-1) {
                         state = ACCEPT;
                         curPos--;
                     } else {
@@ -826,7 +823,7 @@ public:
                 case MULTI_LINE_COMMENT:
                     if (ch == '*') {
                         state = MULTI_LINE_COMMENT_END;
-                    } else if (ch == '\0') {
+                    } else if (curPos == sourceCodelength-1) {
                         raiseError("Unterminated multi-line comment", curPos);
                     }
                     commentValue += ch;
@@ -835,7 +832,7 @@ public:
                 case MULTI_LINE_COMMENT_END:
                     if (ch == '/') {
                         state = ACCEPT; // End of multi-line comment
-                    } else if (ch == '\0') {
+                    } else if (curPos == sourceCodelength-1) {
                         raiseError("Unterminated multi-line comment", curPos);
                     } else {
                         state = MULTI_LINE_COMMENT; // Continue multi-line comment

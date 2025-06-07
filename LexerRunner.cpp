@@ -29,7 +29,11 @@ void coutTokens(const std::list<Token>& tokens) {
         }
         else if (token.type == TokenType::PUNCTUATION) {
             std::cout << "Punctuation: " << token.value << std::endl;
-        } else {
+        } 
+        else if (token.type == TokenType::END_OF_FILE) {
+            std::cout << "End of file." << std::endl;
+        }
+        else {
             std::cout << "(Map token type with id" << static_cast<int>(token.type) << "): " << token.value << std::endl;
         }
     }
