@@ -89,6 +89,7 @@ public:
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
             } 
+            else if (isAbleToExtractPunctuation(tokens)) { /* Check the doc string on isAbleToExtractPunctuation method*/ }
             else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
             else if (isalpha(ch) || ch == '_') {
                 tokens.push_back(extractKeyword_KeywordOperator_Null());
@@ -99,7 +100,6 @@ public:
             else if (isdigit(ch)) {
                 tokens.push_back(extractIntegerOrFloat());
             } 
-            else if (isAbleToExtractPunctuation(tokens)) { /* Check the doc string on isAbleToExtractPunctuation method*/ }
             else if (isOperatorSymbol(ch)) {
                 tokens.push_back(extractOperator());
             }
@@ -745,11 +745,9 @@ public:
         }
 
         if (isPunctuation) {
-            curPos++; // Compensating the end-of-function curPos--
             tokens.push_back(Token(TokenType::PUNCTUATION, value));
             return true;
         } else {
-            // curPos--; // Step back to reprocess the current character
             return false;
         }
 
