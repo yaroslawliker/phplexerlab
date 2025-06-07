@@ -450,6 +450,10 @@ public:
         // I think this method can be implemented 5 times shorter withou using Finite Automata,
         // but let it be :D, trying to do accroding to the lab rules where possible
 
+        if (trace) {
+            std::cout << "Extracting operator at position: " << curPos << std::endl;
+        }
+
         enum STATE {
             START,
 
@@ -642,18 +646,5 @@ public:
         curPos--; // Step back to reprocess the current character
         return Token(TokenType::OPERATOR, operatorValue);
     }
-
-    /*
-    std::string operators[33] = {
-        "+", "-", "*", "/", "%", // Arithmetic operators
-        "=", "+=", "-=", "*=", "/=", "%=", // Assignment operators
-        "==", "===" "!=", "!==", "<", ">", "<=", ">=", "<=>", // Comparison operators
-        "<>" // Not equals for arrays
-        "&&", "||", "!", // Logical operators
-        "&", "|", "^", "~", "<<", ">>", // Bitwise operators
-        ".=", ".", // String operators
-        "?", ":", "??" // Conditional operators
-    };
-    */
 
 };
