@@ -5,6 +5,7 @@
 
 enum class TokenType {
     KEYWORD,
+    OPERATOR,
     IDENTIFIER,
     INTEGER,
     FLOAT,
@@ -31,10 +32,29 @@ private:
     size_t sourceCodelength;
     bool trace = false; // If true, prints debug information
 
+    // List of all keywords
     std::string keywords[11] = {
          "if", "else",
          "do", "while", "for", "foreach", "break", "continue",
          "function", "return", "echo"
+    };
+
+    // List of operators written as keywords
+    std::string keywordOperators[3] = {
+        "and", "or", "xor"
+    };
+
+    // Operators (except the ones written as keywords)
+    // Source: https://www.w3schools.com/php/php_operators.asp
+    std::string operators[33] = {
+        "+", "-", "*", "/", "%", // Arithmetic operators
+        "=", "+=", "-=", "*=", "/=", "%=", // Assignment operators
+        "==", "===" "!=", "!==", "<", ">", "<=", ">=", "<=>", // Comparison operators
+        "<>" // Not equals for arrays
+        "&&", "||", "!", // Logical operators
+        "&", "|", "^", "~", "<<", ">>", // Bitwise operators
+        ".=", ".", // String operators
+        "?", ":", "??" // Conditional operators
     };
 
 
@@ -68,7 +88,7 @@ public:
             } 
             else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
             else if (isalpha(ch) || ch == '_') {
-                tokens.push_back(extractKeyword());
+                tokens.push_back(extractKeywordOrKeywordOperator());
             } 
             else if (ch == '"' || ch == '\'') {
                 tokens.push_back(extractString());
@@ -183,7 +203,7 @@ public:
 
     // Extracts a keyword from the currect position
     // Uses almost Finite Automata to recognize keywords
-    Token extractKeyword() {
+    Token extractKeywordOrKeywordOperator() {
 
         if (trace) {
             std::cout << "Extracting keyword at position: " << curPos << std::endl;
@@ -224,9 +244,17 @@ public:
 
         curPos--; // Step back to reprocess the current character
 
+        // Checking for keywords
         for(std::string keyword: keywords) {
             if (potentialKeyword == keyword) {
                 return Token(TokenType::KEYWORD, potentialKeyword);
+            }
+        }
+
+        // Checking for operators written as keywords (e.g and, or, xor)
+        for(std::string keywordOperator: keywordOperators) {
+            if (potentialKeyword == keywordOperator) {
+                return Token(TokenType::OPERATOR, potentialKeyword);
             }
         }
         
