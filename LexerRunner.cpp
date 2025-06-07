@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <string>
 #include "PHPLexer.cpp"
@@ -39,30 +40,68 @@ void coutTokens(const std::list<Token>& tokens) {
     }
 }
 
-
-int main() {
+std::string readFile(const std::string &filename) {
     
+    std::ifstream file;
+    file.open(filename);
 
-    PHPLexer lexer;
+    std::string content;
 
-    lexer.setSourceCode("// This is an example to test all stuff\n\
+    if (file.fail()) {
+        throw std::runtime_error("No such file");
+    } else {
+        file >> content;
+    }
+
+    return content;
+}
+
+
+int main(int argc, char *argv[]) {
+
+    std::string filename = "";
+
+    if (argc == 2 && std::string(argv[1]) != "--code") {
+        filename = argv[0];
+    }
+
+    if (filename != "") {
+        std::string sourceCode;
+        try {
+            sourceCode = readFile(filename);
+
+            PHPLexer lexer;
+            lexer.setSourceCode(sourceCode);
+            std::list<Token> tokens = lexer.getTokens();
+            
+            coutTokens(tokens);
+        } catch (std::exception e) {
+            std::cout << "Can't open the file, check it's name please." << std::endl;
+            return 0;
+        }
+    } else {
+
+        PHPLexer lexer;
+
+        lexer.setSourceCode("// This is an example to test all stuff\n\
 $var1 if \"hello\" or (true >= false) do 'how are you' && else NULL,\n\
 $_my_var2::123 <=> 123. /* Just testing different stuff */ 45.67 > -0.89 ??;");
-    // lexer.setTrace(true); // Enable tracing for debugging
+        // lexer.setTrace(true); // Enable tracing for debugging
 
-    // Testing all operators
-    // lexer.setSourceCode("+ = * / % = += -= *= /= %= == === != !== < > <= >= <=> <> && || ! & | ^ ~ << >> .= . ? : ?? @");
+        // Testing all operators
+        // lexer.setSourceCode("+ = * / % = += -= *= /= %= == === != !== < > <= >= <=> <> && || ! & | ^ ~ << >> .= . ? : ?? @");
 
-    // Testing all punctuation symbols
-    // lexer.setSourceCode("; , :: => -> ?-> ... [ ] { } ()");
+        // Testing all punctuation symbols
+        // lexer.setSourceCode("; , :: => -> ?-> ... [ ] { } ()");
 
-    // Testing comments
-    // lexer.setSourceCode("// This is comment one\n $num = 123; # This is comment two\n /* This is a multi-line comment\n that spans multiple lines */\n $str = \"Hello, World!\";");
+        // Testing comments
+        // lexer.setSourceCode("// This is comment one\n $num = 123; # This is comment two\n /* This is a multi-line comment\n that spans multiple lines */\n $str = \"Hello, World!\";");
 
 
-    std::list<Token> tokens = lexer.getTokens();
+        std::list<Token> tokens = lexer.getTokens();
 
-    coutTokens(tokens);
+        coutTokens(tokens);
+    }
 
     return 0;
 }
