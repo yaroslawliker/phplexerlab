@@ -331,7 +331,7 @@ public:
             case STRING_CONTENT:
                 if (ch == quoteChar) { 
                     state = END;
-                } else if (curPos == sourceCodelength-1) {
+                } else if (curPos == sourceCodelength-1 || ch == '\n') {
                     raiseError("Unterminated string literal", curPos);
                 }
                 
