@@ -531,9 +531,9 @@ public:
                 case ARYTHMETIC_FIRST:
                     if (!isOperatorSymbol(ch)) {
                         state = ACCEPT;
+                        curPos--;
                     } else if (ch == '=') {
-                        state = ACCEPT;;
-                        curPos--; // Compensating the end-of-function curPos--
+                        state = ACCEPT;
                         operatorValue += ch;
                     } else {
                         raiseError("Unexpected character in arithmetic operator: ", curPos);
@@ -542,6 +542,7 @@ public:
 
                 case LESS_FIRST:
                     if (!isOperatorSymbol(ch)) { // Just <
+                        curPos--; // Step back to reprocess the current character
                         state = ACCEPT;
                     } 
                     else if (ch == '=') { 
@@ -550,7 +551,6 @@ public:
                     }
                     else if (ch == '<' || ch == '>') { // << or <>
                         operatorValue += ch;
-                        curPos++; // Compensating the end-of-function curPos--
                         state = ACCEPT;
                     } else {
                         raiseError("Unexpected character in less operator: ", curPos);
@@ -559,10 +559,10 @@ public:
                 case LESS_EQUAL:
                     if (ch == '>') { // <=>
                         operatorValue += ch;
-                        curPos++; // Compensating the end-of-function curPos--
                         state = ACCEPT; 
                     } else if (!isOperatorSymbol(ch)) { // <=
                         state = ACCEPT;
+                        curPos--;
                     } else {
                         raiseError("Unexpected character in less equal operator: ", curPos);
                     }
@@ -571,9 +571,9 @@ public:
                 case GREATER_FIRST:
                     if (!isOperatorSymbol(ch)) { // Just >
                         state = ACCEPT;
+                        curPos--; // Step back to reprocess the current character
                     } else if (ch == '=' || ch == '>') { // >= or >>
                         operatorValue += ch;
-                        curPos++; // Compensating the end-of-function curPos--
                         state = ACCEPT;
                     } else {
                         raiseError("Unexpected character in greater operator: ", curPos);
@@ -586,6 +586,7 @@ public:
                         state = DOUBLE_EQUAL; // Could be a comparison operator
                     } else if (!isOperatorSymbol(ch)) {
                         state = ACCEPT;
+                        curPos--; // Step back to reprocess the current character
                     } else {
                         raiseError("Unexpected character in assignment operator: ", curPos);
                     }
@@ -593,9 +594,9 @@ public:
                 case DOUBLE_EQUAL:
                     if (ch == '=') { // === met
                         operatorValue += ch;
-                        curPos++; // Compenstating the end-of-function curPos--
                         state = ACCEPT; 
                     } else if (!isOperatorSymbol(ch)) { // == 
+                        curPos--; // Step back to reprocess the current character
                         state = ACCEPT;
                     } else {
                         raiseError("Unexpected character in double equal operator: ", curPos);
@@ -608,6 +609,7 @@ public:
                         state = NOT_EQUAL;
                     } else if (!isOperatorSymbol(ch)) { // Just ! 
                         state = ACCEPT;
+                        curPos--; // Step back to reprocess the current character
                     } else {
                         raiseError("Unexpected character in not operator: ", curPos);
                     }
@@ -615,10 +617,10 @@ public:
                 case NOT_EQUAL:
                     if (ch == '=') { // !== met
                         operatorValue += ch;
-                        curPos++; // Compenstating the end-of-function curPos--
                         state = ACCEPT; 
                     } else if (!isOperatorSymbol(ch)) { // !=
                         state = ACCEPT;
+                        curPos--; // Step back to reprocess the current character
                     } else {
                         raiseError("Unexpected character in not equal operator: ", curPos);
                     }
@@ -627,9 +629,9 @@ public:
                 case LOGICAL:
                     if (!isOperatorSymbol(ch)) { // Bitwise | or &
                         state = ACCEPT;
+                        curPos--; // Step back to reprocess the current character
                     } else if (ch == operatorValue.at(0)) { // Used non-FA techique to avoid doubling state
                         operatorValue += ch; // && or ||
-                        curPos++; // Compenstating the end-of-function curPos--
                         state = ACCEPT; 
                     } else {
                         raiseError("Unexpected character in logical operator: ", curPos);
@@ -639,9 +641,9 @@ public:
                 case QESTION_MARK:
                     if (!isOperatorSymbol(ch)) {
                         state = ACCEPT; // Just ?
+                        curPos--; // Step back to reprocess the current character
                     } else if (ch == '?') { // ?: met
                         operatorValue += ch;
-                        curPos++; // Compenstating the end-of-function curPos--
                         state = ACCEPT; 
                     } else {
                         raiseError("Unexpected character in question mark operator: ", curPos);

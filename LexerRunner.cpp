@@ -38,7 +38,7 @@ int main() {
 
     PHPLexer lexer;
 
-    lexer.setSourceCode("$var1 if \"hello\" or (true >= false) do 'how are you' && else NULL, $_my_var2::123 <=> 123. 45.67 > 0.89 ??;");
+    lexer.setSourceCode("$var1 if \"hello\" or (true >= false) do 'how are you' && else NULL, $_my_var2::123 <=> 123. 45.67 > -0.89 ??;");
     // lexer.setTrace(true); // Enable tracing for debugging
 
     // Testing all operators
