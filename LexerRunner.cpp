@@ -42,8 +42,6 @@ void coutTokens(const std::list<Token>& tokens) {
 }
 
 std::string readFile(const std::string &filename) {
-
-    std::cout << "Debug: filename " << filename << std::endl;
     
     std::ifstream file;
     file.open(filename);
