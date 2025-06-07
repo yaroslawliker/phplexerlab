@@ -511,7 +511,7 @@ public:
 
                 case ARYTHMETIC_FIRST:
                     if (!isOperatorSymbol(ch)) {
-                        state == ACCEPT;
+                        state = ACCEPT;
                     } else if (ch == '=') {
                         state = ACCEPT;;
                         curPos--; // Compensating the end-of-function curPos--
