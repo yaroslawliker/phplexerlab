@@ -11,7 +11,7 @@ enum class TokenType {
     FLOAT,
     STRING,
     BOOLEAN,
-    // Named so because NULL is a nave in C++
+    // Named so because NULL is a name in C++
     NUL
 };
 
@@ -88,7 +88,7 @@ public:
             } 
             else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
             else if (isalpha(ch) || ch == '_') {
-                tokens.push_back(extractKeywordOrKeywordOperator());
+                tokens.push_back(extractKeyword_KeywordOperator_Null());
             } 
             else if (ch == '"' || ch == '\'') {
                 tokens.push_back(extractString());
@@ -203,9 +203,9 @@ public:
         return token; 
     }
 
-    // Extracts a keyword from the currect position
+    // Extracts a keyword, a keyword operators ('and', 'or', 'xor') or 'NULL' from the currect position
     // Uses almost Finite Automata to recognize keywords
-    Token extractKeywordOrKeywordOperator() {
+    Token extractKeyword_KeywordOperator_Null() {
 
         if (trace) {
             std::cout << "Extracting keyword at position: " << curPos << std::endl;
@@ -258,6 +258,11 @@ public:
             if (potentialKeyword == keywordOperator) {
                 return Token(TokenType::OPERATOR, potentialKeyword);
             }
+        }
+
+        // Checking for null
+        if (potentialKeyword == "NULL") {
+            return Token(TokenType::NUL, potentialKeyword);
         }
         
         raiseError("Unrecognized keyword: ", curPos);
