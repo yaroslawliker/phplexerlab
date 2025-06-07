@@ -386,6 +386,7 @@ public:
                     value += ch;
                 } else if (!isdigit(ch)) {
                     state = ACCEPT_INTEGER;
+                    curPos--;
                 } else {
                     value += ch;
                 }
@@ -405,10 +406,10 @@ public:
         }
 
         curPos--; // Step back to reprocess the current character
-
-        if (state == ACCEPT_INTEGER) {
+        
+        if (state == ACCEPT_INTEGER || state == INTEGER_PART) {
             return Token(TokenType::INTEGER, value);
-        } else if (state == ACCEPT_FLOAT) {
+        } else if (state == ACCEPT_FLOAT || state == FLOAT) {
             return Token(TokenType::FLOAT, value);
         }
     }

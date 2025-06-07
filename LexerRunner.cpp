@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 
         PHPLexer lexer;
 
-        lexer.setSourceCode("$var1 $_var2 $my_var $_");
+        lexer.setSourceCode("# This is also a comment\n456");
         // lexer.setTrace(true); // Enable tracing for debugging
 
         // Testing all operators
