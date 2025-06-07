@@ -460,7 +460,9 @@ public:
             GREATER_FIRST,
             ASSIGNMENT_FIRST,
             NOT_FIRST,
-            LOGICAL,
+            LOGICAL, // For |, ||, &, &&
+            QESTION_MARK,
+
             // On one-element operators without possible continuation goes to ACCEPT
 
             // --- Processing states ---
@@ -501,6 +503,9 @@ public:
                     // --- Single character operators ---
                     else if (ch == ':' || ch == '~' || ch == '^') {
                         state = ACCEPT;
+                    }
+                    else if (ch == '?') {
+                        state = QESTION_MARK;
                     }
                     else {
                         // Would never be reached, if I didn't mess up in the state-transmission above and if method is called properly
@@ -615,6 +620,19 @@ public:
                     } else {
                         raiseError("Unexpected character in logical operator: ", curPos);
                     } 
+                    break;
+
+                case QESTION_MARK:
+                    if (!isOperatorSymbol(ch)) {
+                        state = ACCEPT; // Just ?
+                    } else if (ch == '?') { // ?: met
+                        operatorValue += ch;
+                        curPos++; // Compenstating the end-of-function curPos--
+                        state = ACCEPT; 
+                    } else {
+                        raiseError("Unexpected character in question mark operator: ", curPos);
+                    }
+
                     break;
             }
 

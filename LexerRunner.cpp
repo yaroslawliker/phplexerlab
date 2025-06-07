@@ -35,8 +35,7 @@ int main() {
 
     // lexer.setSourceCode("$var1 if \"hello\" do \"how are you\" else 'bye' $_my_var2 123 123. 45.67 0.89 true false");
     // lexer.setTrace(true); // Enable tracing for debugging
-    // lexer.setSourceCode("+ = * / % = += -= *= /= %= == === != !== < > <= >= <=> <> && || ! & | ^ ~ << >> .= . ? : ??");
-    lexer.setSourceCode("< > <= >= <=> <> && || ! & | ^ ~ << >> .= . ? : ??");
+    lexer.setSourceCode("+ = * / % = += -= *= /= %= == === != !== < > <= >= <=> <> && || ! & | ^ ~ << >> .= . ? : ??");
 
 
     std::list<Token> tokens = lexer.getTokens();
