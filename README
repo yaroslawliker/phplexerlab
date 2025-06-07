@@ -1,0 +1,33 @@
+# About
+This is an individual task of the Compilers course.
+
+The goal was: to make PHP lexer using pure C++ and Finita Automata concepts.
+
+# Usage
+    To run lexer you'll need LexerRunner.
+
+0. You may recompile LexerRunner.cpp if needed (you don't have to):
+    $ g++ LexerRunner.cpp -o LexerRunner PHPLexer.cpp
+    Don't care about warnings.
+
+1. Run the following command to the console to get help:
+    $ ./LexerRunner
+
+2. You can insert your code as an argument:
+    $ ./LexerRunner --code '$var1 = 30'
+
+3. Use it with premade examples or your files
+    $ ./LexerRunner --filename examples/general.php
+
+4. You can modify the LexerRunner.cpp file, recompile and run as following it to debug if needed:
+    $ ./LexerRunner --debug
+
+5. The output will be a horizontal list with the structure <TokenType>: <Token value> as following:
+    Identifier: $var1
+    Operator: =
+    Integer: 30
+    End of file.
+    
+
+
+
