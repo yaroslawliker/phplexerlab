@@ -443,7 +443,7 @@ public:
 
     // Checks if the character is an operator symbol like +, =, ? ect
     bool isOperatorSymbol(char ch) {
-        const std::string operatorSymbols = "+-*/%=&|^~<>!?:.";
+        const std::string operatorSymbols = "+-*/%=&|^~<>!?:.@";
 
         return operatorSymbols.find(ch) != std::string::npos;
     }
@@ -509,8 +509,8 @@ public:
                     else if (ch == '&' || ch == '|') { // Excepts ~ and ^
                         state = LOGICAL;
                     }
-                    // --- Single character operators ---
-                    else if (ch == ':' || ch == '~' || ch == '^') {
+                    // Single character operators
+                    else if (ch == ':' || ch == '~' || ch == '^' || ch == '@') {
                         state = ACCEPT;
                     }
                     else if (ch == '?') {
