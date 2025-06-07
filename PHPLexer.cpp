@@ -342,6 +342,8 @@ public:
             curPos++;
         }
 
+        curPos--; // Compensating the last cycle's curPos++ execution
+
         return Token(TokenType::STRING, strValue);
     }
 
