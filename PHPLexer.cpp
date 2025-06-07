@@ -552,8 +552,7 @@ public:
                 case GREATER_FIRST:
                     if (!isOperatorSymbol(ch)) { // Just >
                         state = ACCEPT;
-                    } 
-                    if (ch == '=' || ch == '>') { // >= or >>
+                    } else if (ch == '=' || ch == '>') { // >= or >>
                         operatorValue += ch;
                         curPos++; // Compensating the end-of-function curPos--
                         state = ACCEPT;
