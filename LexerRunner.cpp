@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <list>
 #include <string>
 #include "PHPLexer.cpp"
@@ -45,13 +46,13 @@ std::string readFile(const std::string &filename) {
     std::ifstream file;
     file.open(filename);
 
-    std::string content;
-
-    if (file.fail()) {
+    if (!file.is_open()) {
         throw std::runtime_error("No such file");
-    } else {
-        file >> content;
     }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
 
     return content;
 }
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
     std::string filename = "";
 
     if (argc == 2 && std::string(argv[1]) != "--code") {
-        filename = argv[0];
+        filename = argv[1];
     }
 
     if (filename != "") {
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
             PHPLexer lexer;
             lexer.setSourceCode(sourceCode);
             std::list<Token> tokens = lexer.getTokens();
-            
+
             coutTokens(tokens);
         } catch (std::exception e) {
             std::cout << "Can't open the file, check it's name please." << std::endl;
