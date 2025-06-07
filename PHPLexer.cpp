@@ -4,6 +4,7 @@
 
 
 enum class TokenType {
+    COMMENT,
     KEYWORD,
     OPERATOR,
     IDENTIFIER,
@@ -30,6 +31,7 @@ class PHPLexer
 private:
     std::string sourceCode;
     size_t curPos; // Currect position
+    size_t line;
     size_t sourceCodelength;
     bool trace = false; // If true, prints debug information
 
@@ -69,6 +71,7 @@ public:
         
         sourceCode = code;
         curPos = 0;
+        line = 1;
         sourceCodelength = code.length();
     };
 
@@ -83,12 +86,16 @@ public:
 
             char ch = sourceCode[curPos];
 
+            if (ch == '\n') {
+                line++;
+            }
 
             // !!! The order of checks is important
             
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
-            } 
+            }
+            else if ( (ch == '/' || ch == '#') && isAbleToExtractComment(tokens)) {  /* Check the doc string on isAbleToExtractComment*/ }
             else if (isAbleToExtractPunctuation(tokens)) { /* Check the doc string on isAbleToExtractPunctuation method*/ }
             else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
             else if (isalpha(ch) || ch == '_') {
@@ -748,6 +755,104 @@ public:
             tokens.push_back(Token(TokenType::PUNCTUATION, value));
             return true;
         } else {
+            return false;
+        }
+
+    }
+
+    // Working with comments:
+    // 1. Checks if the current position is the start of a comment
+    // 2. If it is, extracts the comment and adds a token to the list
+    // 3. Returns true if a comment was found, false otherwise
+    // The method uses Finite Automata to recognize comments
+    bool isAbleToExtractComment(std::list<Token>& tokens) {
+
+        if (trace) {
+            std::cout << "Checking for comment at position: " << curPos << std::endl;
+        }
+
+        enum STATE {
+            START,
+            SINGLE_DASH,
+            INLINE_COMMENT,
+            MULTI_LINE_COMMENT,
+            MULTI_LINE_COMMENT_END,
+            ACCEPT,
+            DECLINE
+        } state = START;
+
+        std::string commentValue;
+
+        while (curPos < sourceCodelength && state != ACCEPT && state != DECLINE) {
+            char ch = sourceCode[curPos];
+
+            switch (state)
+            {
+                case START:
+                    if (ch == '/') {
+                        state = SINGLE_DASH;
+                    } else if (ch == '#') {
+                        state = INLINE_COMMENT;
+                    }
+                     else {
+                        // Never reached if the method is called properly
+                        raiseError("Expected '/' at the start of comment", curPos);
+                    }
+                    commentValue += ch;
+                    break;
+
+                case SINGLE_DASH:
+                    if (ch == '/') {
+                        state = INLINE_COMMENT;
+                    } else if (ch == '*') {
+                        state = MULTI_LINE_COMMENT;
+                    } else {
+                        curPos--;
+                        state = DECLINE; // Not a comment
+                    }
+                    commentValue += ch;
+
+                    break;
+
+                case INLINE_COMMENT:
+                    if (ch == '\n' || ch == '\0') {
+                        state = ACCEPT;
+                        curPos--;
+                    } else {
+                        commentValue += ch;
+                    }
+                    break;
+
+                case MULTI_LINE_COMMENT:
+                    if (ch == '*') {
+                        state = MULTI_LINE_COMMENT_END;
+                    } else if (ch == '\0') {
+                        raiseError("Unterminated multi-line comment", curPos);
+                    }
+                    commentValue += ch;
+                    break;
+
+                case MULTI_LINE_COMMENT_END:
+                    if (ch == '/') {
+                        state = ACCEPT; // End of multi-line comment
+                    } else if (ch == '\0') {
+                        raiseError("Unterminated multi-line comment", curPos);
+                    } else {
+                        state = MULTI_LINE_COMMENT; // Continue multi-line comment
+                    }
+                    commentValue += ch;
+                
+                    break;
+            }
+
+            curPos++;
+        }
+
+        curPos--; // Step back to leave curPos the last character of the token
+        if (state == ACCEPT) {
+            tokens.push_back(Token(TokenType::COMMENT, commentValue));
+            return true;
+        } else if (state == DECLINE) {
             return false;
         }
 
