@@ -203,7 +203,7 @@ public:
          
         }
 
-        curPos--; // Step back to reprocess the current character
+        curPos -= 2; // Step back to reprocess the current character
         Token token(TokenType::IDENTIFIER, identifier);
         return token; 
     }
@@ -738,9 +738,7 @@ public:
         else if (ch == '>' || ch == '?') {
             isPunctuation = false;
         }
-        else if (isPunctuationSymbol(ch)) {
-            // No need to check for the next character, because it is a single character symbol
-        } else {
+        else if (!isPunctuationSymbol(ch)) {
             isPunctuation = false; // Not a punctuation symbol
         }
 
