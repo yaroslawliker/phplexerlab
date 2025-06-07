@@ -567,7 +567,7 @@ public:
                         operatorValue += ch;
                         state = DOUBLE_EQUAL; // Could be a comparison operator
                     } else if (!isOperatorSymbol(ch)) {
-                        state == ACCEPT;
+                        state = ACCEPT;
                     } else {
                         raiseError("Unexpected character in assignment operator: ", curPos);
                     }
