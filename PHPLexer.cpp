@@ -199,6 +199,7 @@ public:
                     identifier += ch;
                 } else {
                     state = ACCEPT;
+                    curPos--;
                 }
                 break;
 
@@ -208,7 +209,7 @@ public:
          
         }
 
-        curPos -= 2; // Step back to reprocess the current character
+        curPos--; // Step back to reprocess the current character
         Token token(TokenType::IDENTIFIER, identifier);
         return token; 
     }

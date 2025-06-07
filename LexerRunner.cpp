@@ -86,9 +86,7 @@ int main(int argc, char *argv[]) {
 
         PHPLexer lexer;
 
-        lexer.setSourceCode("// This is an example to test all stuff\n\
-$var1 if \"hello\" or (true >= false) do 'how are you' && else NULL,\n\
-$_my_var2::123 <=> 123. /* Just testing different stuff */ 45.67 > -0.89 ??;");
+        lexer.setSourceCode("$var1 $_var2 $my_var $_");
         // lexer.setTrace(true); // Enable tracing for debugging
 
         // Testing all operators
