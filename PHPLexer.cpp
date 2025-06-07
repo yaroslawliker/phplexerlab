@@ -40,8 +40,8 @@ class PHPLexer
 private:
     std::string sourceCode;
     size_t curPos; // Currect position
-    size_t line;
-    size_t sourceCodelength;
+    size_t line; // Number of lines
+    size_t sourceCodelength; // Extracted to evoid multiple invoking sourceCode.length()
     bool trace = false; // If true, prints debug information
 
     // List of all keywords
@@ -72,6 +72,7 @@ private:
 
 public:
 
+    // Sets the input sourceCode
     void setSourceCode(std::string code) {
                 
         sourceCode = code;
@@ -80,10 +81,15 @@ public:
         sourceCodelength = code.length();
     };
 
+    // If the lexer should print messages to the console
     void setTrace(bool t) {
         trace = t;
     }
-
+    
+    // Retrieving tokens from the sourceCode
+    // Should be called after invoking setSourceCode() method
+    // Returns a list of Toknes always ending with END_OF_FILE token
+    // May throw LexerExcetion
     std::list<Token> getTokens() {
         std::list<Token> tokens;
 
@@ -95,8 +101,22 @@ public:
                 line++;
             }
 
-            // !!! The order of checks is important
+            // Methods named like extract... return approriate token or through a
+            // LexerException error. If token was found, such methods always
+            // leave curPos pointing on the last symbol of the lexeme
+
+            // Methods named like isAbleToExtract... try to extract an appropriate token:
+            // If token was found, then add it in the tokens list, sets curPos on the
+            //     last symbol of the token and return true. No other routes are checked
+            // Otherwise just resests curPos to the position before method was called
+            //     and return false, so other routes are checked
+
+            // The demand of leave curPos on the last symbol is important to
+            // continue processing next tokens after this cycle's curPos++ is executed.
+
+            // !!! The order of routes is important
             
+            // --- Routes ---
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
             }
@@ -116,7 +136,6 @@ public:
                 tokens.push_back(extractOperator());
             }
         
-
             curPos++;
         }
 
@@ -125,34 +144,39 @@ public:
         return tokens;
     }
 
+    // Helping method to raise error.
+    // Takes the beggining and the end of the words, find "broken" spot and
+    // puts it in the thrown LexerException.
+    // If curPos is on the whitespace, then takes two near words
     void raiseError(std::string message, int pos) {
 
         int wordStartPos = pos;
         int wordEndPos = pos;
 
+        // Looking for start and end of the word
         if (pos > 0) {
             wordStartPos--;
         }
         if (pos < sourceCodelength-1) {
             wordEndPos++;
         }
-
         while (wordStartPos > 0 && sourceCode[wordStartPos] != ' ') {
             wordStartPos--;
         }
-
         while (wordEndPos < sourceCodelength && sourceCode[wordEndPos] != ' ') {
             wordEndPos++;
         }
 
+        // Showing the position
         std::string positionStr = " at position: " + std::to_string(pos);
 
-
+        // Finidng the trace
         std::string errorTrace;
         errorTrace += sourceCode.substr(wordStartPos, pos - wordStartPos);
         errorTrace += "<---";
         errorTrace += sourceCode.substr(pos, wordEndPos - pos);
 
+        // Getting everything up
         message += positionStr;
         message += ": " + errorTrace;
 
@@ -188,7 +212,7 @@ public:
                     identifier += ch;
                     state = IDENTIFIER_FIRST;
                 } else {
-                    // Handle error or unexpected character
+                    // Should never be reached if the method is called properly
                     raiseError("Expected '$' at the start of identifier", curPos);
                 }
                 break;
@@ -198,7 +222,7 @@ public:
                     identifier += ch;
                     state = IDENTIFIER;
                 } else {
-                    // Handle error or unexpected character
+                    // Handle an unexpected character
                     raiseError("Invalid first character in identifier: ", curPos);
                 }
                 break;
@@ -208,7 +232,7 @@ public:
                     identifier += ch;
                 } else {
                     state = ACCEPT;
-                    curPos--;
+                    curPos--; // Making curPos to point to the last symbol of the token
                 }
                 break;
 
@@ -218,7 +242,7 @@ public:
          
         }
 
-        curPos--; // Step back to reprocess the current character
+        curPos--; // Compensate the last cycle curPos++ execution
         Token token(TokenType::IDENTIFIER, identifier);
         return token; 
     }
@@ -257,7 +281,7 @@ public:
                 if (isalnum(ch) || ch == '_') {
                     potentialKeyword += ch;
                 } else {
-                    curPos--; // Cur pos to return on the last charactet
+                    curPos--; // Making curPos to point to the last symbol of the token
                     state = END;
                 }
                 break;
@@ -265,7 +289,7 @@ public:
             curPos++;
         }
 
-        curPos--; // Compensating lasy cycle curPos
+        curPos--; // Compensating last cycle curPos++ execution
 
         // Checking for keywords
         for(std::string keyword: keywords) {
@@ -320,7 +344,7 @@ public:
                 } else if (ch == '\'') {
                     quoteChar = '\'';
                 } else {
-                    // Handle error or unexpected character
+                    // Would never be reached if the method is called properly
                     raiseError("Expected a quote character to start string", curPos);
                 }
 
@@ -329,7 +353,7 @@ public:
                 break;
             
             case STRING_CONTENT:
-                if (ch == quoteChar) { 
+                if (ch == quoteChar) { // Used non-FA trick to avoid doubling states
                     state = END;
                 } else if (curPos == sourceCodelength-1 || ch == '\n') {
                     raiseError("Unterminated string literal", curPos);
@@ -358,7 +382,7 @@ public:
         enum STATE {
             START,
             LEADING_ZERO, // Has leadng zero e.g. 01 or 0.1
-            INTEGER_PART, // Haven't meet a point yet
+            INTEGER_PART, // Haven't meet a point yet (may result in Integer or Float)
             FLOAT, // Met a point
             ACCEPT_INTEGER,
             ACCEPT_FLOAT
@@ -398,7 +422,7 @@ public:
                     value += ch;
                 } else if (!isdigit(ch)) {
                     state = ACCEPT_INTEGER;
-                    curPos--;
+                    curPos--; // Leave curPos on the end of the token
                 } else {
                     value += ch;
                 }
@@ -410,7 +434,7 @@ public:
                     value += ch;
                 } else {
                     state = ACCEPT_FLOAT;
-                    curPos--;
+                    curPos--; // Leave curPos on the end of the token
                 }
                 break;
             }
@@ -418,8 +442,9 @@ public:
             curPos++;
         }
 
-        curPos--; // Step back to reprocess the current character
+        curPos--; // Compensate the while's last curPos++ execution
 
+        // INTEGER_PART and ACCEPT_INTEGER are needed ending of the file
         if (state == ACCEPT_INTEGER || state == INTEGER_PART) {
             return Token(TokenType::INTEGER, value);
         } else if (state == ACCEPT_FLOAT || state == FLOAT) {
@@ -441,7 +466,7 @@ public:
         std::string value;
 
         char ch;
-        // Exctraction a word
+
         while (curPos < sourceCodelength) {
             ch = sourceCode[curPos];
 
@@ -454,7 +479,7 @@ public:
         }
 
         if (value == "true" || value == "false") {
-            curPos--; // Step back to reprocess the current character
+            curPos--; // Compensate the while's last curPos++ execution
             Token token(TokenType::BOOLEAN, value);
             tokens.push_back(token);
             return true;
@@ -674,11 +699,11 @@ public:
             curPos++;
         }
 
-        curPos--; // Step back to reprocess the current character
+        curPos--; // Compensate the while's last curPos++ execution
         return Token(TokenType::OPERATOR, operatorValue);
     }
 
-
+    // Checks if the ch is one of the symbles of the punctuation tokens.
     bool isPunctuationSymbol(char ch) {
 
         const char punctuationSymbols[15] = {
@@ -712,7 +737,7 @@ public:
         char ch = sourceCode[curPos];
         value += ch;
 
-        // punctuations
+        // Punctuations:
         //     ; ,
         //     ::
         //     => -> ?-> ...
@@ -722,7 +747,7 @@ public:
         if (ch == ':') {
             if (curPos + 1 < sourceCodelength && sourceCode[curPos + 1] == ':') {
                 value = "::";
-                curPos++;
+                curPos++; // Go to the end of the token
             } else {
                 isPunctuation = false; // ':' is an operator, not punctuation
             }
@@ -731,7 +756,7 @@ public:
         else if (ch == '=' || ch == '-') {
             if (curPos + 1 < sourceCodelength && sourceCode[curPos + 1] == '>') {
                 value += ">";
-                curPos++;
+                curPos++; // Go to the end of the token
             } else {
                 isPunctuation = false; // '=' and '-' are operators, not punctuation
             }
@@ -739,7 +764,7 @@ public:
         // ?->
         else if (ch == '?') {
             if (curPos + 2 < sourceCodelength && sourceCode[curPos + 1] == '-' && sourceCode[curPos + 2] == '>') {
-                curPos += 2;
+                curPos += 2; // Go to the end of the token
                 value = "?->";
             } else {
                 isPunctuation = false; // '?' is an operator, not punctuation
@@ -749,7 +774,7 @@ public:
         else if (ch == '.') {
             if (curPos + 2 < sourceCodelength && sourceCode[curPos + 1] == '.' && sourceCode[curPos + 2] == '.') {
                 value = "...";
-                curPos += 2;
+                curPos += 2; // Go to the end of the token
             } else {
                 isPunctuation = false; // '.' is an operator, not punctuation
             }
