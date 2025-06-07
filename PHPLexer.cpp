@@ -7,6 +7,7 @@ enum class TokenType {
     KEYWORD,
     OPERATOR,
     IDENTIFIER,
+    PUNCTUATION,
     INTEGER,
     FLOAT,
     STRING,
@@ -55,8 +56,7 @@ private:
         "&", "|", "^", "~", "<<", ">>", // Bitwise operators
         ".=", ".", // String operators
         "?", ":", "??" // Conditional operators
-    }; // "+-*/%=&|^~<>!?:.";
-
+    };
 
 public:
 
@@ -83,19 +83,24 @@ public:
 
             char ch = sourceCode[curPos];
 
+
+            // !!! The order of checks is important
+            
             if (ch == '$') {
                 tokens.push_back(extractIdenetifier());
             } 
             else if (isAbleToExtractBoolean(tokens)) { /* Check the doc string on isAbleToExtractBoolean method*/ }
             else if (isalpha(ch) || ch == '_') {
                 tokens.push_back(extractKeyword_KeywordOperator_Null());
-            } 
+            }
             else if (ch == '"' || ch == '\'') {
                 tokens.push_back(extractString());
             } 
             else if (isdigit(ch)) {
                 tokens.push_back(extractIntegerOrFloat());
-            } else if (isOperatorSymbol(ch)) {
+            } 
+            else if (isAbleToExtractPunctuation(tokens)) { /* Check the doc string on isAbleToExtractPunctuation method*/ }
+            else if (isOperatorSymbol(ch)) {
                 tokens.push_back(extractOperator());
             }
         
@@ -650,6 +655,104 @@ public:
 
         curPos--; // Step back to reprocess the current character
         return Token(TokenType::OPERATOR, operatorValue);
+    }
+
+
+    bool isPunctuationSymbol(char ch) {
+
+        const char punctuationSymbols[15] = {
+            ';', ',', '.',
+            ':',
+            '=', '?', '-', '>', '.',
+            '[', ']', '{', '}', '(', ')'
+        };
+
+        for (char symbol : punctuationSymbols) {
+            if (ch == symbol) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Working with punctuation symbols:
+    // 1. Checks if the current position is a punctuation symbol
+    // 2. If it is, extracts the punctuation symbol(s) and adds a token to the list
+    // 3. Returns true if a punctuation symbol was found, false otherwise
+    bool isAbleToExtractPunctuation(std::list<Token>& tokens) {
+
+        if (trace) {
+            std::cout << "Checking for punctuation at position: " << curPos << std::endl;
+        }
+
+        std::string value;
+        bool isPunctuation = true;
+
+        char ch = sourceCode[curPos];
+        value += ch;
+
+        // punctuations
+        //     ; ,
+        //     ::
+        //     => -> ?-> ...
+        //     [ ] { } ( )
+    
+        // : or ::
+        if (ch == ':') {
+            if (curPos + 1 < sourceCodelength && sourceCode[curPos + 1] == ':') {
+                value = "::";
+                curPos++;
+            } else {
+                isPunctuation = false; // ':' is an operator, not punctuation
+            }
+        } 
+        // => or ->
+        else if (ch == '=' || ch == '-') {
+            if (curPos + 1 < sourceCodelength && sourceCode[curPos + 1] == '>') {
+                value += ">";
+                curPos++;
+            } else {
+                isPunctuation = false; // '=' and '-' are operators, not punctuation
+            }
+        }
+        // ?->
+        else if (ch == '?') {
+            if (curPos + 2 < sourceCodelength && sourceCode[curPos + 1] == '-' && sourceCode[curPos + 2] == '>') {
+                curPos += 2;
+                value = "?->";
+            } else {
+                isPunctuation = false; // '?' is an operator, not punctuation
+            }
+        }
+        // ...
+        else if (ch == '.') {
+            if (curPos + 2 < sourceCodelength && sourceCode[curPos + 1] == '.' && sourceCode[curPos + 2] == '.') {
+                value = "...";
+                curPos += 2;
+            } else {
+                isPunctuation = false; // '.' is an operator, not punctuation
+            }
+        // Single character punctuation symbols e.g. '(', ']', ',' ect
+        } 
+        // Ommit '>', '?' operators
+        else if (ch == '>' || ch == '?') {
+            isPunctuation = false;
+        }
+        else if (isPunctuationSymbol(ch)) {
+            // No need to check for the next character, because it is a single character symbol
+        } else {
+            isPunctuation = false; // Not a punctuation symbol
+        }
+
+        if (isPunctuation) {
+            curPos++; // Compensating the end-of-function curPos--
+            tokens.push_back(Token(TokenType::PUNCTUATION, value));
+            return true;
+        } else {
+            // curPos--; // Step back to reprocess the current character
+            return false;
+        }
+
     }
 
 };
