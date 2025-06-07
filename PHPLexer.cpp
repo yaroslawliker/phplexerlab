@@ -248,6 +248,7 @@ public:
                 if (isalnum(ch) || ch == '_') {
                     potentialKeyword += ch;
                 } else {
+                    curPos--; // Cur pos to return on the last charactet
                     state = END;
                 }
                 break;
@@ -255,7 +256,7 @@ public:
             curPos++;
         }
 
-        curPos--; // Step back to reprocess the current character
+        curPos--; // Compensating lasy cycle curPos
 
         // Checking for keywords
         for(std::string keyword: keywords) {
@@ -406,7 +407,7 @@ public:
         }
 
         curPos--; // Step back to reprocess the current character
-        
+
         if (state == ACCEPT_INTEGER || state == INTEGER_PART) {
             return Token(TokenType::INTEGER, value);
         } else if (state == ACCEPT_FLOAT || state == FLOAT) {
