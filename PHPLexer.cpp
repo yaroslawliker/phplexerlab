@@ -18,8 +18,6 @@ enum class TokenType {
     END_OF_FILE
 };
 
-
-
 struct Token{    
     TokenType type;
     std::string value;
@@ -27,6 +25,16 @@ struct Token{
     Token(TokenType t, const std::string& v) : type(t), value(v){}
 };
 
+// Custom exception
+class LexerException: public std::runtime_error {
+public:
+    explicit LexerException(const std::string& message) 
+    : runtime_error(message) { }
+};
+
+// Class reads sourceCode of PHP script and translates it into tokens,
+// giving tokens types and values (original)
+// Usage: first call setSourceCode method, then retrieve tokens via getTokens() method
 class PHPLexer
 {
 private:
@@ -148,7 +156,7 @@ public:
         message += positionStr;
         message += ": " + errorTrace;
 
-        throw std::runtime_error(message);
+        throw LexerException(message);
     }
 
 
