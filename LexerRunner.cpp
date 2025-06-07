@@ -62,27 +62,51 @@ std::string readFile(const std::string &filename) {
 
 int main(int argc, char *argv[]) {
 
-    std::string filename = "";
+    if (argc == 1 || argc > 3) {
+        std::cout << "PHPLexerRunner usage:" << std::endl 
+            << "\tExample: ./LexerRunner --code '$var1 = \"test\"' " << std::endl
+            << "Options:" << std::endl
+            << "\t1) [-f | --filename] <filename>" << std::endl
+            << "\t2) [-c | --code] <source code>" << std::endl
+            << "\t1) [-d | --debug]" << std::endl;
+        return 0;
+    } 
+    else if (argc == 3) {
 
-    if (argc == 2 && std::string(argv[1]) != "--code") {
-        filename = argv[1];
-    }
-
-    if (filename != "") {
+        std::string secondArg = std::string(argv[1]);
         std::string sourceCode;
-        try {
-            sourceCode = readFile(filename);
-        } catch (std::exception e) {
-            std::cout << "Can't open the file, check it's name please." << std::endl;
-            return 0;
+
+        if (secondArg == "--filename" || secondArg == "-f") {
+
+            std::string filename = argv[2];
+
+            try {
+                sourceCode = readFile(filename);
+            } catch (std::exception e) {
+                std::cout << "Can't open the file, check it's name please." << std::endl;
+                return 0;
+            }   
+        } 
+        else if (secondArg == "--code" || secondArg == "-c") {
+            sourceCode = argv[2];
+        } else {
+            std::cout << "Wrong argument: " << argv[1] << std::endl;
+            return 1;
         }
-        
+
         PHPLexer lexer;
         lexer.setSourceCode(sourceCode);
         std::list<Token> tokens = lexer.getTokens();
 
         coutTokens(tokens);
-    } else {
+
+    } else if (argc == 2) {
+
+        std::string secondArg = argv[1];
+        if (secondArg != "-d" && std::string(argv[1]) != "--debug") {
+            std::cout << "Wrong argument: " << secondArg << std::endl;
+            return 1;
+        }
 
         PHPLexer lexer;
 
