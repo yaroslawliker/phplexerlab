@@ -41,6 +41,7 @@ private:
          "if", "else",
          "do", "while", "for", "foreach", "break", "continue",
          "function", "return", "echo"
+         // Add keywords if needed
     };
 
     // List of operators written as keywords
@@ -399,6 +400,7 @@ public:
                     value += ch;
                 } else {
                     state = ACCEPT_FLOAT;
+                    curPos--;
                 }
                 break;
             }
