@@ -42,6 +42,8 @@ void coutTokens(const std::list<Token>& tokens) {
 }
 
 std::string readFile(const std::string &filename) {
+
+    std::cout << "Debug: filename " << filename << std::endl;
     
     std::ifstream file;
     file.open(filename);
@@ -70,16 +72,16 @@ int main(int argc, char *argv[]) {
         std::string sourceCode;
         try {
             sourceCode = readFile(filename);
-
-            PHPLexer lexer;
-            lexer.setSourceCode(sourceCode);
-            std::list<Token> tokens = lexer.getTokens();
-
-            coutTokens(tokens);
         } catch (std::exception e) {
             std::cout << "Can't open the file, check it's name please." << std::endl;
             return 0;
         }
+        
+        PHPLexer lexer;
+        lexer.setSourceCode(sourceCode);
+        std::list<Token> tokens = lexer.getTokens();
+
+        coutTokens(tokens);
     } else {
 
         PHPLexer lexer;
