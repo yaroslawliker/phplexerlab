@@ -7,7 +7,10 @@ void coutTokens(const std::list<Token>& tokens) {
 
     for (const auto& token : tokens) {
 
-        if (token.type == TokenType::IDENTIFIER) {
+        if (token.type == TokenType::COMMENT) {
+            std::cout << "Comment: " << token.value << std::endl;
+        }
+        else if (token.type == TokenType::IDENTIFIER) {
             std::cout << "Identifier: " << token.value << std::endl;
         } else if (token.type == TokenType::KEYWORD) {
             std::cout << "Keyword: " << token.value << std::endl;
@@ -38,7 +41,7 @@ int main() {
 
     PHPLexer lexer;
 
-    lexer.setSourceCode("$var1 if \"hello\" or (true >= false) do 'how are you' && else NULL, $_my_var2::123 <=> 123. 45.67 > -0.89 ??;");
+    // lexer.setSourceCode("$var1 if \"hello\" or (true >= false) do 'how are you' && else NULL, $_my_var2::123 <=> 123. 45.67 > -0.89 ??;");
     // lexer.setTrace(true); // Enable tracing for debugging
 
     // Testing all operators
@@ -46,6 +49,9 @@ int main() {
 
     // Testing all punctuation symbols
     // lexer.setSourceCode("; , :: => -> ?-> ... [ ] { } ()");
+
+    // Testing comments
+    lexer.setSourceCode("// This is comment one\n $num = 123; # This is comment two\n /* This is a multi-line comment\n that spans multiple lines */\n $str = \"Hello, World!\";");
 
 
     std::list<Token> tokens = lexer.getTokens();
