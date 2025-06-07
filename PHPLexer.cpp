@@ -55,7 +55,7 @@ private:
         "&", "|", "^", "~", "<<", ">>", // Bitwise operators
         ".=", ".", // String operators
         "?", ":", "??" // Conditional operators
-    };
+    }; // "+-*/%=&|^~<>!?:.";
 
 
 public:
@@ -95,7 +95,9 @@ public:
             } 
             else if (isdigit(ch)) {
                 tokens.push_back(extractIntegerOrFloat());
-            } 
+            } else if (isOperatorSymbol(ch)) {
+                tokens.push_back(extractOperator());
+            }
         
 
             curPos++;
@@ -433,4 +435,208 @@ public:
         curPos = startPos; // Resetting the position to start 
         return false;       
     }
+
+    // Checks if the character is an operator symbol like +, =, ? ect
+    bool isOperatorSymbol(char ch) {
+        const std::string operatorSymbols = "+-*/%=&|^~<>!?:.";
+
+        return operatorSymbols.find(ch) != std::string::npos;
+    }
+
+    // Extracts an operator from the current position
+    // Uses Finite Automata to recognize operators
+    Token extractOperator() {
+        
+        // I think this method can be implemented 5 times shorter withou using Finite Automata,
+        // but let it be :D, trying to do accroding to the lab rules where possible
+
+        enum STATE {
+            START,
+
+            // --- Starting states ---
+            // Choosing automata path depending on the first character
+            ARYTHMETIC_FIRST, // Also includes string operator ., becouse it is handeled like arythmetic operators
+            LESS_FIRST,
+            GREATER_FIRST,
+            ASSIGNMENT_FIRST,
+            NOT_FIRST,
+            LOGICAL,
+            // On one-element operators without possible continuation goes to ACCEPT
+
+            // --- Processing states ---
+            LESS_EQUAL, // After COMPARISON_FIRST, may result in <= or <=>
+            DOUBLE_EQUAL, // After ASSIGNMENT_FIRST
+            NOT_EQUAL,
+        
+            ACCEPT
+        } state = START;
+
+        std::string operatorValue;
+        char ch;
+
+        while(curPos < sourceCodelength && state != ACCEPT) {
+            ch = sourceCode[curPos];
+
+            switch (state)
+            {
+                case START:
+                    if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '.') {
+                        state = ARYTHMETIC_FIRST;
+                    }
+                    else if (ch == '<') {
+                        state = LESS_FIRST;
+                    }
+                    else if (ch == '>') {
+                        state = GREATER_FIRST;
+                    }
+                    else if (ch == '=') {
+                        state = ASSIGNMENT_FIRST;
+                    }
+                    else if (ch == '!') {
+                        state = NOT_FIRST;
+                    }
+                    else if (ch == '&' || ch == '|') { // Excepts ~ and ^
+                        state = LOGICAL;
+                    }
+                    // --- Single character operators ---
+                    else if (ch == ':' || ch == '~' || ch == '^') {
+                        state = ACCEPT;
+                    }
+                    else {
+                        // Would never be reached, if I didn't mess up in the state-transmission above and if method is called properly
+                        raiseError("Unexpected start character for operator: ", curPos);
+                    }
+                    operatorValue += ch;
+                    break;
+
+                case ARYTHMETIC_FIRST:
+                    if (!isOperatorSymbol(ch)) {
+                        state == ACCEPT;
+                    } else if (ch == '=') {
+                        state = ACCEPT;;
+                        curPos--; // Compensating the end-of-function curPos--
+                        operatorValue += ch;
+                    } else {
+                        raiseError("Unexpected character in arithmetic operator: ", curPos);
+                    }
+                    break;
+
+                case LESS_FIRST:
+                    if (!isOperatorSymbol(ch)) { // Just <
+                        state = ACCEPT;
+                    } 
+                    if (ch == '=') { 
+                        operatorValue += ch; // <=
+                        state = LESS_EQUAL;
+                    }
+                    else if (ch == '<' || ch == '>') { // << or <>
+                        operatorValue += ch;
+                        curPos++; // Compensating the end-of-function curPos--
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in less operator: ", curPos);
+                    }
+                    break;
+                case LESS_EQUAL:
+                    if (ch == '>') { // <=>
+                        operatorValue += ch;
+                        curPos++; // Compensating the end-of-function curPos--
+                        state = ACCEPT; 
+                    } else if (!isOperatorSymbol(ch)) { // <=
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in less equal operator: ", curPos);
+                    }
+                    break;
+
+                case GREATER_FIRST:
+                    if (!isOperatorSymbol(ch)) { // Just >
+                        state = ACCEPT;
+                    } 
+                    if (ch == '=' || ch == '>') { // >= or >>
+                        operatorValue += ch;
+                        curPos++; // Compensating the end-of-function curPos--
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in greater operator: ", curPos);
+                    }
+                    break;
+
+                case ASSIGNMENT_FIRST:
+                    if (ch == '=') {
+                        operatorValue += ch;
+                        state = DOUBLE_EQUAL; // Could be a comparison operator
+                    } else if (!isOperatorSymbol(ch)) {
+                        state == ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in assignment operator: ", curPos);
+                    }
+                    break; 
+                case DOUBLE_EQUAL:
+                    if (ch == '=') { // === met
+                        operatorValue += ch;
+                        curPos++; // Compenstating the end-of-function curPos--
+                        state = ACCEPT; 
+                    } else if (!isOperatorSymbol(ch)) { // == 
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in double equal operator: ", curPos);
+                    }
+                    break;
+
+                case NOT_FIRST:
+                    if (ch == '=') {
+                        operatorValue += ch;
+                        state = NOT_EQUAL;
+                    } else if (!isOperatorSymbol(ch)) { // Just ! 
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in not operator: ", curPos);
+                    }
+                    break;
+                case NOT_EQUAL:
+                    if (ch == '=') { // !== met
+                        operatorValue += ch;
+                        curPos++; // Compenstating the end-of-function curPos--
+                        state = ACCEPT; 
+                    } else if (!isOperatorSymbol(ch)) { // !=
+                        state = ACCEPT;
+                    } else {
+                        raiseError("Unexpected character in not equal operator: ", curPos);
+                    }
+                    break;
+
+                case LOGICAL:
+                    if (!isOperatorSymbol(ch)) { // Bitwise | or &
+                        state = ACCEPT;
+                    } else if (ch == operatorValue.at(0)) { // Used non-FA techique to avoid doubling state
+                        operatorValue += ch; // && or ||
+                        curPos++; // Compenstating the end-of-function curPos--
+                        state = ACCEPT; 
+                    } else {
+                        raiseError("Unexpected character in logical operator: ", curPos);
+                    } 
+                    break;
+            }
+
+            curPos++;
+        }
+
+        curPos--; // Step back to reprocess the current character
+        return Token(TokenType::OPERATOR, operatorValue);
+    }
+
+    /*
+    std::string operators[33] = {
+        "+", "-", "*", "/", "%", // Arithmetic operators
+        "=", "+=", "-=", "*=", "/=", "%=", // Assignment operators
+        "==", "===" "!=", "!==", "<", ">", "<=", ">=", "<=>", // Comparison operators
+        "<>" // Not equals for arrays
+        "&&", "||", "!", // Logical operators
+        "&", "|", "^", "~", "<<", ">>", // Bitwise operators
+        ".=", ".", // String operators
+        "?", ":", "??" // Conditional operators
+    };
+    */
+
 };
