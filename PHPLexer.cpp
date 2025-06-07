@@ -525,7 +525,7 @@ public:
                     if (!isOperatorSymbol(ch)) { // Just <
                         state = ACCEPT;
                     } 
-                    if (ch == '=') { 
+                    else if (ch == '=') { 
                         operatorValue += ch; // <=
                         state = LESS_EQUAL;
                     }
