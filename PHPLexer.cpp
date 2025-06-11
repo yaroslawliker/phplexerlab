@@ -411,6 +411,9 @@ public:
                 if (ch == '.') {
                     state = FLOAT;
                     value += ch;
+                } else if (!isdigit(ch)) { // Just a zero integer case
+                    state = ACCEPT_INTEGER;
+                    curPos--; // Leave curPos on the end of the token
                 } else {
                     raiseError("Leading zero must be followed by a decimal point", curPos);
                 }
@@ -444,11 +447,13 @@ public:
 
         curPos--; // Compensate the while's last curPos++ execution
 
-        // INTEGER_PART and ACCEPT_INTEGER are needed ending of the file
-        if (state == ACCEPT_INTEGER || state == INTEGER_PART) {
-            return Token(TokenType::INTEGER, value);
-        } else if (state == ACCEPT_FLOAT || state == FLOAT) {
+        // ACCEPT_FLOAT is needed ending of the file
+        if (state == ACCEPT_FLOAT || state == FLOAT) {
             return Token(TokenType::FLOAT, value);
+        }
+        // If some other state like INTEGER_PART, ACCEPT_INTEGER or LEADING_ZERO
+        else {
+            return Token(TokenType::INTEGER, value);
         }
     }
 
